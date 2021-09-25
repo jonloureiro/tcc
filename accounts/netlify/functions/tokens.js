@@ -12,7 +12,6 @@ exports.handler = async function (event, context) {
 
   if (event.httpMethod !== 'POST') return httpResponse.METHOD_NOT_ALLOWED
 
-  console.log(event.headers.cookie)
   if (!event.headers.cookie) return httpResponse.UNAUTHORIZED
 
   const cookies = event.headers.cookie.split('; ')
