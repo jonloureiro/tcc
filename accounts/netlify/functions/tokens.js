@@ -12,6 +12,7 @@ exports.handler = async function (event, context) {
 
   if (event.httpMethod !== 'POST') return httpResponse.METHOD_NOT_ALLOWED
 
+  console.log(event.headers.cookie)
   if (!event.headers.cookie) return httpResponse.UNAUTHORIZED
 
   const cookies = event.headers.cookie.split('; ')
@@ -33,7 +34,9 @@ exports.handler = async function (event, context) {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Set-Cookie': `refresh_token=${newRefreshToken}; Max-Age=${maxAge}; Secure; HttpOnly;`
+        'Set-Cookie': `refresh_token=${newRefreshToken}; Max-Age=${maxAge}; Secure; HttpOnly; SameSite=None`,
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': 'http://localhost:40000' // TODO arrumar cors
       },
       body: JSON.stringify({ access_token: newAccessToken, username })
     }
