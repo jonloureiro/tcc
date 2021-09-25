@@ -38,7 +38,7 @@ exports.handler = async function (event, context) {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Set-Cookie': `refresh_token=${refreshToken}; Max-Age=${maxAge}; Secure; HttpOnly;`
+        'Set-Cookie': `refresh_token=${refreshToken}; Max-Age=${maxAge}; Secure; HttpOnly; SameSite=None;`
       },
       body: JSON.stringify({ access_token: accessToken })
     }
