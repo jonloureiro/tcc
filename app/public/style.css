@@ -1,0 +1,25 @@
+:root {
+  --dark: #21252B;
+  --light: #E8F1FF;
+  --white: #FAFAFA;
+}
+
+body {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 300;
+  height: 80vh;
+  width: 100vw;
+  display: flex;
+  color: var(--dark);
+  background-color: var(--light);
+}
+
+main {
+  margin: auto;
+  padding: 0px 16px;
+}
+
+h1 {
+  font-weight: 600;
+  text-align: center;
+}
