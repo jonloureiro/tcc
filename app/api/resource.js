@@ -17,13 +17,13 @@ exports.handler = async function (event, context) {
   if (!accessToken) return httpResponse.UNAUTHORIZED
 
   try {
-    const jwtPayload = jwt.verify(accessToken, config.SECRET)
+    jwt.verify(accessToken, config.SECRET)
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ jwtPayload })
+      body: JSON.stringify({ resource: config.RESOURCE })
     }
   } catch (error) {
     return httpResponse.UNAUTHORIZED
