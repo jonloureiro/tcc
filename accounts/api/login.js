@@ -3,11 +3,11 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-const config = require('../../../shared/config')
-const createSession = require('../../lib/createSession')
-const findUserByUsername = require('../../lib/findUserByUsername')
-const getUa = require('../../lib/getUa')
-const httpResponse = require('../../../shared/httpResponse')
+const config = require('../../shared/config')
+const createSession = require('../lib/createSession')
+const findUserByUsername = require('../lib/findUserByUsername')
+const getUa = require('../lib/getUa')
+const httpResponse = require('../../shared/httpResponse')
 
 exports.handler = async function (event, context) {
   if (context) context.callbackWaitsForEmptyEventLoop = false

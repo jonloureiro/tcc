@@ -2,15 +2,18 @@
 
 const jwt = require('jsonwebtoken')
 
-const httpResponse = require('../../../shared/httpResponse')
-const config = require('../../../shared/config')
-const getUa = require('../../lib/getUa')
-const refreshToken = require('../../lib/refreshToken')
+const httpResponse = require('../../shared/httpResponse')
+const config = require('../../shared/config')
+const getUa = require('../lib/getUa')
+const refreshToken = require('../lib/refreshToken')
 
 exports.handler = async function (event, context) {
   if (context) context.callbackWaitsForEmptyEventLoop = false
 
   if (event.httpMethod !== 'POST') return httpResponse.METHOD_NOT_ALLOWED
+
+  const cors = config.CORS.split(',')
+  if (!cors.includes(event.headers.origin)) return httpResponse.UNAUTHORIZED
 
   if (!event.headers.cookie) return httpResponse.UNAUTHORIZED
 
@@ -35,9 +38,9 @@ exports.handler = async function (event, context) {
         'Content-Type': 'application/json',
         'Set-Cookie': `refresh_token=${newRefreshToken}; Max-Age=${maxAge}; Secure; HttpOnly; SameSite=None`,
         'Access-Control-Allow-Credentials': true,
-        'Access-Control-Allow-Origin': 'http://localhost:40000' // TODO arrumar cors
+        'Access-Control-Allow-Origin': `${event.headers.origin}`
       },
-      body: JSON.stringify({ access_token: newAccessToken, username })
+      body: JSON.stringify({ access_token: newAccessToken, username, event })
     }
   } catch (error) {
     console.log(error)
