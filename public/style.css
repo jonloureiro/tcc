@@ -1,7 +1,6 @@
 :root {
   --primary: #4361ee;
   --dark: #21252B;
-  --light: #E8F1FF;
   --white: #FAFAFA;
 }
 
@@ -12,7 +11,6 @@ body {
   width: 100vw;
   display: flex;
   color: var(--dark);
-  background-color: var(--light);
 }
 
 main {

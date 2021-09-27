@@ -1,9 +1,9 @@
 import { h, text, app } from 'https://unpkg.com/hyperapp@2.0.19/index.js'
 
-/* global fetch, Headers */
+/* global fetch, Headers, btoa */
 
 const FetchingResource = (state, data) => [
-  { ...state, fetchingToken: false, fetchingResource: true, ...data },
+  UpdateState(state, { ...data, messages: [...data.messages, 'Fetching Resource...'] }),
   [async dispatch => {
     const headers = new Headers()
     headers.append('Authorization', `Bearer ${data.accessToken}`)
@@ -12,59 +12,59 @@ const FetchingResource = (state, data) => [
       method: 'get',
       headers
     }
+    const messages = []
     try {
       const response = await fetch('/.netlify/functions/resource', requestInit)
-      const { resource } = await response.json()
-      if (!resource) throw Error('Without Resource')
-      dispatch(StoppedLoading, { resource })
+      const { resource, message } = await response.json()
+      if (!resource) throw Error(message)
+      messages.push(`Resource: "${resource}"`)
+      dispatch(UpdateState, { messages })
     } catch (e) {
-      console.log(e)
-      dispatch(Fail)
+      messages.push(e.message)
+      dispatch(UpdateState, { error: true, messages })
     }
   }]
 ]
 
 const InitialState = () => [
-  { fetchingToken: true, fetchingResource: false, accessToken: '', username: '', resource: '' },
+  { accessToken: '', error: false, messages: ['Fetching Token...'] },
   [async dispatch => {
     const requestInit = {
       credentials: 'include',
       method: 'post'
     }
+    const messages = []
     try {
       const response = await fetch('https://accounts.jonloureiro.dev/.netlify/functions/tokens', requestInit)
-      const { access_token: accessToken, username } = await response.json()
-      if (!accessToken) throw Error('Without access token')
-      dispatch(FetchingResource, { accessToken, username })
+      const { access_token: accessToken, username, message } = await response.json()
+      if (!accessToken) throw Error(message)
+      messages.push('With Token...')
+      messages.push(`Username: "${username}"`)
+      dispatch(FetchingResource, { accessToken, messages })
     } catch (e) {
-      console.log(e)
-      dispatch(StoppedLoading)
+      messages.push(e.message)
+      dispatch(UpdateState, { error: true, messages })
     }
   }]
 ]
 
-const StoppedLoading = (state, data) => {
-  return ({ ...state, fetchingToken: false, fetchingResource: false, ...data })
-}
-
-const Fail = (state) => {
-  return { ...state, accessToken: '', fetchingToken: false, fetchingResource: false }
-}
+const UpdateState = (state, data) => ({
+  ...state,
+  ...data,
+  messages: [...state.messages, ...data.messages]
+})
 
 app({
   init: InitialState,
-  view: ({ fetchingToken, fetchingResource, accessToken, username, resource }) => h('main', {}, [
-    h('h1', {}, text('App')),
+  view: ({ error, messages }) => h('main', {}, [
+    h('h1', {}, text(`App (${window.location.hostname.split('.')[1]})`)),
     h('ul', {}, [
-      fetchingToken && h('li', {}, text('Fetching Token...')),
-      !fetchingToken && accessToken && h('li', {}, text('With Token...')),
-      !fetchingToken && accessToken && h('li', {}, text(`User: ${username}`)),
-      accessToken && fetchingResource && h('li', {}, text('Fetching Resource...')),
-      accessToken && !fetchingResource && h('li', {}, text(`Resource: ${resource}`)),
-      !accessToken &&
-      !fetchingToken &&
-      !fetchingResource &&
-      h('a', { href: 'https://accounts.jonloureiro.dev/login' }, text('Login'))
+      ...messages.map(message => {
+        return h('li', {}, text(message))
+      }),
+      error && h('li', {}, [
+        h('a', { href: `https://accounts.jonloureiro.dev/login?callback=${btoa(window.location.origin)}` }, text('Login'))
+      ])
     ])
   ]),
   node: document.getElementById('app')

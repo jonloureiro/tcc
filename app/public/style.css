@@ -1,6 +1,6 @@
 :root {
+  --primary: #4361ee;
   --dark: #21252B;
-  --light: #E8F1FF;
   --white: #FAFAFA;
 }
 
@@ -11,7 +11,6 @@ body {
   width: 100vw;
   display: flex;
   color: var(--dark);
-  background-color: var(--light);
 }
 
 main {
@@ -22,4 +21,15 @@ main {
 h1 {
   font-weight: 600;
   text-align: center;
+  text-transform: capitalize;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+ul {
+  padding-inline-start: 0;
+  list-style-type: none;
 }
