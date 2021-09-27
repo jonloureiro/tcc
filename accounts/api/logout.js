@@ -8,7 +8,7 @@ const RESPONSE_DEFAULT = origin => ({
   statusCode: 200,
   headers: {
     'Content-Type': 'application/json',
-    'Set-Cookie': 'refresh_token=; Max-Age=1; Secure; HttpOnly;',
+    'Set-Cookie': 'refresh_token=; Max-Age=1; Secure; HttpOnly; SameSite=None;',
     'Access-Control-Allow-Credentials': true,
     'Access-Control-Allow-Origin': origin
   }
