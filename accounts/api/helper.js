@@ -16,7 +16,11 @@ exports.handler = async function (event, context) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ cors })
+      body: JSON.stringify({
+        cors,
+        origin: event.headers.origin,
+        cookie: event.headers.cookie
+      })
     }
   } catch (error) {
     return httpResponse.UNAUTHORIZED
