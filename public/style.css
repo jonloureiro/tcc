@@ -11,6 +11,7 @@ body {
   width: 100vw;
   display: flex;
   color: var(--dark);
+  background-color: var(--white);
 }
 
 main {
