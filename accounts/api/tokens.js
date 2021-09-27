@@ -15,16 +15,43 @@ exports.handler = async function (event, context) {
   const cors = config.CORS.split(',')
   if (!cors.includes(event.headers.origin)) return httpResponse.UNAUTHORIZED
 
-  if (!event.headers.cookie) return httpResponse.UNAUTHORIZED
+  if (!event.headers.cookie) {
+    return {
+      ...httpResponse.UNAUTHORIZED,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': `${event.headers.origin}`
+      }
+    }
+  }
 
   const cookies = event.headers.cookie.split('; ')
   const cookie = cookies.find(s => s.includes('refresh_token'))
 
-  if (!cookie) return httpResponse.UNAUTHORIZED
+  if (!cookie) {
+    return {
+      ...httpResponse.UNAUTHORIZED,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': `${event.headers.origin}`
+      }
+    }
+  }
 
   const [, oldRefreshToken] = cookie.split('=')
 
-  if (!oldRefreshToken) return httpResponse.UNAUTHORIZED
+  if (!oldRefreshToken) {
+    return {
+      ...httpResponse.UNAUTHORIZED,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': `${event.headers.origin}`
+      }
+    }
+  }
 
   try {
     const clientIp = event.headers['client-ip']
@@ -44,6 +71,13 @@ exports.handler = async function (event, context) {
     }
   } catch (error) {
     console.log(error)
-    return httpResponse.UNAUTHORIZED
+    return {
+      ...httpResponse.UNAUTHORIZED,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': `${event.headers.origin}`
+      }
+    }
   }
 }
