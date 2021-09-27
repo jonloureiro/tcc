@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Overpass Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-weight: 300;
   height: 80vh;
   width: 100vw;
@@ -15,6 +15,7 @@ body {
 }
 
 main {
+  max-width: 320px;
   margin: auto;
   padding: 0px 16px;
 }
