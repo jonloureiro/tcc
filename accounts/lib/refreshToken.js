@@ -18,9 +18,9 @@ module.exports = async function refreshToken (oldRefreshToken, ip, userAgent) {
     .collection('tokens')
     .findOne({ refreshToken: oldRefreshToken })
 
-  if (!oldToken.valid) {
-    // TODO: DANGER! INVALIDAR TUDO
-  }
+  if (!oldToken) throw Error('Refresh token nonexistent')
+
+  if (!oldToken.valid) await invalidateSession(oldToken)
 
   const promiseUpdaOldToken = mongoClient
     .db('cross-domain-sso')
@@ -62,4 +62,38 @@ module.exports = async function refreshToken (oldRefreshToken, ip, userAgent) {
     newRefreshToken,
     maxAge
   }
+}
+
+async function invalidateSession (oldToken) {
+  const mongoClient = await getMongoClient()
+
+  const promiseDeleteSession = mongoClient
+    .db('cross-domain-sso')
+    .collection('sessions')
+    .findOneAndDelete({ _id: oldToken.sessionId })
+
+  const promiseCurrentTokenValid = mongoClient
+    .db('cross-domain-sso')
+    .collection('tokens')
+    .findOneAndUpdate({ sessionId: oldToken.sessionId, valid: true }, {
+      $set: { valid: false }
+    })
+
+  const [session, currentToken] = await Promise.all([
+    promiseDeleteSession,
+    promiseCurrentTokenValid
+  ])
+
+  await mongoClient
+    .db('cross-domain-sso')
+    .collection('logs')
+    .insertOne({
+      type: 'Token reuse',
+      session: session.value,
+      reusedToken: oldToken,
+      currentToken: currentToken.value,
+      operationTime: new Date()
+    })
+
+  throw Error('Refresh token invalid')
 }
