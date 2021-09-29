@@ -75,6 +75,7 @@ exports.handler = async function (event, context) {
       ...httpResponse.UNAUTHORIZED,
       headers: {
         'Content-Type': 'application/json',
+        'Set-Cookie': 'refresh_token=; Max-Age=1; Secure; HttpOnly; SameSite=None',
         'Access-Control-Allow-Credentials': true,
         'Access-Control-Allow-Origin': `${event.headers.origin}`
       }
