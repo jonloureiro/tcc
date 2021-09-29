@@ -20,7 +20,16 @@ module.exports = async function refreshToken (oldRefreshToken, ip, userAgent) {
 
   if (!oldToken) throw Error('Refresh token nonexistent')
 
-  if (!oldToken.valid) await invalidateSession(oldToken)
+  if (!oldToken.valid) await invalidateSessionByTokenInvalid(oldToken)
+
+  const session = await mongoClient
+    .db('cross-domain-sso')
+    .collection('sessions')
+    .findOne({ _id: oldToken.sessionId })
+
+  if (!session) throw Error('Refresh token nonexistent')
+
+  if (!compareUa(session.userAgent, userAgent)) await invalidateSessionByUaNotEqual(oldToken, userAgent)
 
   const promiseUpdaOldToken = mongoClient
     .db('cross-domain-sso')
@@ -64,7 +73,7 @@ module.exports = async function refreshToken (oldRefreshToken, ip, userAgent) {
   }
 }
 
-async function invalidateSession (oldToken) {
+async function invalidateSessionByTokenInvalid (oldToken) {
   const mongoClient = await getMongoClient()
 
   const promiseDeleteSession = mongoClient
@@ -86,9 +95,8 @@ async function invalidateSession (oldToken) {
 
   await mongoClient
     .db('cross-domain-sso')
-    .collection('logs')
+    .collection('logs-token-reuse')
     .insertOne({
-      type: 'Token reuse',
       session: session.value,
       reusedToken: oldToken,
       currentToken: currentToken.value,
@@ -96,4 +104,41 @@ async function invalidateSession (oldToken) {
     })
 
   throw Error('Refresh token invalid')
+}
+
+async function invalidateSessionByUaNotEqual (oldToken, currentUserAgent) {
+  const mongoClient = await getMongoClient()
+
+  const promiseDeleteSession = mongoClient
+    .db('cross-domain-sso')
+    .collection('sessions')
+    .findOneAndDelete({ _id: oldToken.sessionId })
+
+  const promiseCurrentTokenValid = mongoClient
+    .db('cross-domain-sso')
+    .collection('tokens')
+    .findOneAndUpdate({ sessionId: oldToken.sessionId, valid: true }, {
+      $set: { valid: false }
+    })
+
+  const [session, currentToken] = await Promise.all([
+    promiseDeleteSession,
+    promiseCurrentTokenValid
+  ])
+
+  await mongoClient
+    .db('cross-domain-sso')
+    .collection('logs-ua-not-equal')
+    .insertOne({
+      session: session.value,
+      token: currentToken.value,
+      currentUserAgent,
+      operationTime: new Date()
+    })
+
+  throw Error('Refresh token invalid')
+}
+
+function compareUa (ua1, ua2) {
+  return ua1.browser === ua2.browser && ua1.os === ua2.os && ua1.cpu === ua2.cpu
 }
